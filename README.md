@@ -59,6 +59,33 @@ navigator.getUserMedia({video: true, audio: true}, function(stream) {
 });
 
 ```
+
+##Join Swarm Call
+**Call**
+```javascript
+peer.JoinSwarmChannel("TestChannel",null);
+peerfinder = new PeerFinder(peer);
+peerfinder.GetBestPeer("test",(bestpeer)=>{
+	BestPeer = bestpeer;
+	peer.GetStream(bestpeer,(stream)=>{
+		console.log(stream);
+	});
+});
+
+
+```
+
+##Host Swarm Call
+**Call**
+```javascript
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+navigator.getUserMedia({video: true, audio: true}, function(stream) {
+  	peer.JoinSwarmChannel("TestChannel",stream);
+}, function(err) {
+  console.log('Failed to get local stream' ,err);
+});
+
+```
 **Answer**
 ```javascript
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
