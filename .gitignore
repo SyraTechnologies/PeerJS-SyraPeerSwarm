@@ -16,3 +16,7 @@ node_modules
 npm-debug.log
 
 test/output
+dist
+.tscache
+test/public
+

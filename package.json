@@ -1,31 +1,52 @@
 {
   "name": "peerjs",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "description": "PeerJS client",
   "main": "./lib/peer.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/peers/peerjs.git"
   },
-  "author": "Michelle Bu, Eric Zhang",
+  "author": "Michelle Bu, Eric Zhang, Jairo Caro-Accino, Carlos Caballero",
   "license": "MIT",
   "scripts": {
     "prepublish": "./node_modules/.bin/grunt",
-    "postinstall": "opencollective-postinstall",
-    "test": "cd test && codeceptjs run"
+    "selenium:install": "selenium-standalone install",
+    "selenium:start:bg": "selenium-standalone start &",
+    "postinstall": "npm run selenium:install && opencollective-postinstall",
+    "test": "cd test && codeceptjs run",
+    "release": "standard-version"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "release": {
+    "branch": "master"
   },
   "devDependencies": {
     "codeceptjs": "^1.4.2",
     "expect.js": "*",
-    "grunt": "^0.4.5",
-    "grunt-browserify": "^3.0.1",
-    "grunt-cli": "^0.1.13",
+    "grunt": "^1.0.3",
+    "grunt-browserify": "^5.3.0",
+    "grunt-cli": "^1.3.1",
     "grunt-contrib-concat": "^0.5.0",
     "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-uglify": "^0.5.1",
-    "mocha": "*"
+    "grunt-contrib-uglify": "^4.0.0",
+    "grunt-ts": "^6.0.0-beta.21",
+    "mocha": "*",
+    "selenium-standalone": "^6.15.3",
+    "typescript": "^3.1.3",
+    "@commitlint/cli": "^7.2.1",
+    "@commitlint/config-angular": "^7.1.2",
+    "@commitlint/config-conventional": "^7.1.2",
+    "commitlint": "^7.2.1",
+    "husky": "^1.1.2",
+    "standard-version": "^4.4.0"
   },
   "dependencies": {
+    "@types/node": "^10.12.0",
     "eventemitter3": "^0.1.5",
     "express": "^4.16.3",
     "js-binarypack": "0.0.9",
