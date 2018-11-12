@@ -44,8 +44,6 @@ peer.on('connection', function(conn) {
   });
 });
 ```
-
-## Media calls
 **Call**
 ```javascript
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -59,8 +57,6 @@ navigator.getUserMedia({video: true, audio: true}, function(stream) {
 });
 
 ```
-
-##Join Swarm Call
 **Call**
 ```javascript
 peer.JoinSwarmChannel("TestChannel",null);
