@@ -61,9 +61,9 @@ navigator.getUserMedia({video: true, audio: true}, function(stream) {
 ```javascript
 peer.JoinSwarmChannel("TestChannel",null);
 peerfinder = new PeerFinder(peer);
-peerfinder.GetBestPeer((bestpeer)=>{
+peerfinder.GetBestPeer("test",(bestpeer)=>{
 	BestPeer = bestpeer;
-	peer.GetSwarmStream(bestpeer,(stream)=>{
+	peer.GetStream(bestpeer,(stream)=>{
 		console.log(stream);
 	});
 });
@@ -71,7 +71,7 @@ peerfinder.GetBestPeer((bestpeer)=>{
 
 ```
 
-**Host Swarm Channel**
+**Host Swarm Call**
 ```javascript
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 navigator.getUserMedia({video: true, audio: true}, function(stream) {

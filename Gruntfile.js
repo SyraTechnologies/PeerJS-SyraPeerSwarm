@@ -2,7 +2,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON("package.json"),
 
-    browserify: {
+    browserify: {f
       dev: {
         src: ["dist/exports.js"],
         dest: "dist/peer.js"
