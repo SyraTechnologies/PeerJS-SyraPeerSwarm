@@ -340,35 +340,34 @@ Peer.prototype.connect = function(peer, options) {
 Peer.prototype._openswarmsocket = function() {
 	return io('wss://cryptsy.tv:443',{transports: ['websocket']});
 };
-Peer.prototype._updatePeer = function(speed){
-	let max = Math.floor(rating / 500);
-	let tier = 0;
-	if(self.CurrentTier)
-		tier = self.CurrentTier;
-	self.SwarmSocket.emit("set peer tier",self.id,tier);
-	self.SwarmSocket.emit("set peer rating",self.id,speed);
-	self.SwarmSocket.emit("set peer max",self.id,max);
-};
+
 Peer.prototype.GetSwarmStream = function(peer,cb) {
 	var self = this;
-	this.onSwarmStream = cb;
-	self._speedtest(self._updatePeer);
+	self.onSwarmStream = cb;
+	self._speedtest(function(speed){
+		var max = Math.floor(speed / 500);
+		var tier = 0;
+
+		self.SwarmSocket.emit("set peer tier",self.id,tier);
+		self.SwarmSocket.emit("set peer rating",self.id,speed);
+		self.SwarmSocket.emit("set peer max",self.id,max);
+	});
 	this.SwarmSocket.emit("Call",peer,this.id);
-	
+
 };
 Peer.prototype._speedtest = function(callback){
-	let payload = '1';
+	var payload = '1';
 	for (var dup = 0; dup < 20; dup++) {
 		payload += payload;
 	}
-	let boundary = "---------------------------7da24f2e50046";
-	let body = '--' + boundary + '\r\n' + 'Content-Disposition: form-data; name="file";' + 'filename="temp.txt"\r\n' + 'Content-type: plain/text\r\n\r\n' + payload + '\r\n' + '--' + boundary + '--';
-	let upSpeed = 0,
+	var boundary = "---------------------------7da24f2e50046";
+	var body = '--' + boundary + '\r\n' + 'Content-Disposition: form-data; name="file";' + 'filename="temp.txt"\r\n' + 'Content-type: plain/text\r\n\r\n' + payload + '\r\n' + '--' + boundary + '--';
+	var upSpeed = 0,
 		startTime = 0,
 		endTime = 0;
 	$.ajax({
 		xhr: () => {
-			let xhr = new window.XMLHttpRequest();
+			var xhr = new window.XMLHttpRequest();
 			xhr.upload.addEventListener("progress", (evt) => {
 				if (startTime == 0)
 					startTime = (new Date()).getTime();
@@ -387,7 +386,49 @@ Peer.prototype._speedtest = function(callback){
 		success: (data) => {}
 	});
 };
-
+Peer.prototype._monitorcall = function(call,stream){
+	var attempts = 0;
+	var self = this;
+	if(self.IsMonitoringCall){
+		clearTimeout(self.MonitorInterval)
+		self.IsMonitoringCall = false;
+	}
+	if(!self.IsMonitoringCall){
+		self.IsMonitoringCall = true;
+		self.MonitorInterval = setInterval(function(){
+			if(attempts > 2){
+				if(self.onReconnectFailed)
+					self.onReconnectFailed();
+			}else{
+			if (!call.pc) {
+				//If there is no connection then reconnect.
+				if(navigator.userAgent.toLowerCase().indexOf('chrome') > -1){
+					attempts = attempts + 1;
+					self.IsSwarmConnected = false;
+					self.GetSwarmStream(Object.keys(self.connections)[0],self.onSwarmStream);
+					console.log(Object.keys(self.connections)[0]);
+					console.log(self);
+				}
+			} else {
+				//If connection exists then check the icestate to see if connected still
+				switch (call.pc.iceConnectionState) {
+					case 'disconnected':
+						attempts = attempts + 1;
+						self.IsSwarmConnected = false;
+						self.GetSwarmStream(Object.keys(self.connections)[0],self.onSwarmStream);
+						break;
+					case 'failed':
+						attempts = attempts + 1;
+						self.IsSwarmConnected = false;
+						self.GetSwarmStream(Object.keys(self.connections)[0],self.onSwarmStream);
+						break;
+				}
+			}
+			}
+		},2000);
+		
+	}
+};
 /**
  * Open Socket Server and Join Channel
  */
@@ -402,16 +443,29 @@ Peer.prototype.JoinSwarmChannel = function(swarmchannel,stream, socket) {
 		}
 		if(!stream){
 			this.on('call', function(call) {
-				call.answer(null, self.options);
-				call.on('stream', function(stream) {
-					if(self.onSwarmStream)
-						self.onSwarmStream(stream);
-					self.SwarmStream = stream;
-					self.SwarmSocket.emit("add peer",self.id);
-				});
+				if(!this.IsSwarmConnected){
+					this.IsSwarmConnected = true;
+					call.answer(null, self.options);
+					call.on('stream', function(stream) {
+						if(self.onSwarmStream)
+							self.onSwarmStream(stream);
+						self._monitorcall(call,stream);
+						self.SwarmStream = stream;
+						self.SwarmSocket.emit("add peer",self.id);
+					});
+				}else{
+					call.close();
+				}
 			});
 		}else{
-			self._speedtest(self._updatePeer);
+			self._speedtest(function(speed){
+	var max = Math.floor(speed / 500);
+	var tier = 0;
+
+	self.SwarmSocket.emit("set peer tier",self.id,tier);
+	self.SwarmSocket.emit("set peer rating",self.id,speed);
+	self.SwarmSocket.emit("set peer max",self.id,max);
+});
 		}
 		this.SwarmSocket.on("joined channel",function(channel,ismoderator)  {
 			if(stream){

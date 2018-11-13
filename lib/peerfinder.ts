@@ -3,6 +3,7 @@ export var PeerFinder = function(peer){
 };
 
 PeerFinder.prototype.GetBestPeer = function(callback){
+	var self = this;
 	this.onFindPeer = callback;
 	this.socket.emit("get peer list");
 };
@@ -47,7 +48,6 @@ PeerFinder.prototype._randompeer = function(){
 	}
 };
 function onPeerList(peers,self){
-	console.log(peers);
 	self.PeerList = peers;
 	if (Object.keys(peers).length > 0) {
 		var BestPeer = self._highestpeer();
@@ -55,8 +55,11 @@ function onPeerList(peers,self){
 			BestPeer = self._randompeer();
 		if (BestPeer) {
 			self.BestPeer = peers[BestPeer.Name];
+			
 			if(self.onFindPeer)
+			{
 				self.onFindPeer(BestPeer.Name);
+			}
 		}
 	}
 }
